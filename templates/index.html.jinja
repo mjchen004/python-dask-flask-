@@ -1,0 +1,77 @@
+{% extends 'base.html.jinja' %}
+
+{% block title %}
+{{ super() }} - 交通事故分析
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style type="text/css">
+    body {
+        background-color: white;
+    }
+
+    .box1,.box2,.box3 {
+        margin: 20px;
+       
+    }
+
+    .box1 {
+        background-color: azure;
+    }
+
+    .box2 {
+        background-color: beige;
+    }
+
+    .box3 {
+        background-color: azure;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="box1">
+    <h1>这是首页 😀🤩😇</h1>
+    <h2>功能簡介:</h2>
+    <ul>
+        <li>查詢條件(日期): 用戶可透過下拉選單選擇特定一天發生的事故列表</li>
+        <li>查詢條件(縣市): 用戶可透過勾選欄位選擇事件發生的縣市，或者點選全選來選擇所有的縣市</li>
+        <li>進階篩選: 用戶可透過勾選欄位選擇天氣與光線狀態來篩選事故列表</li>
+        <li>篩選結果: 呈現在上述條件所發生的事故數量</li>
+        <li>事故資料: 呈現篩選後的事故資料</li>
+        <li>事故地圖: 呈現篩選查詢後的所有事故發生地點</li>
+        <li>顯示對應的線圖: 呈現篩選資料後的交通事故類型、天候分佈、道路類型分佈、事故時間分佈之圖表</li>
+    </ul>
+</div>
+
+<div class="box2">
+    <h2>資料來源:</h2>
+    <p>傷亡道路交通事故資料 (<a
+            href="https://data.gov.tw/datasets/search?p=1&size=10&s=_score_desc&rft=%E4%BA%A4%E9%80%9A%E4%BA%8B%E6%95%85"
+            target="_blank">政府資料開放平台</a>)</p>
+</div>
+
+<div class="box3">
+    <h2>資料格式:</h2>
+    <p>各年度資料CSV檔案</p>
+    <p>顯示事故資料類型包含:</p>
+    <ul>
+        <li>發生日期</li>
+        <li>發生時間</li>
+        <li>事故類別</li>
+        <li>發生地點</li>
+        <li>天氣</li>
+        <li>光線名稱</li>
+        <li>速限</li>
+        <li>道路類別</li>
+        <li>事故類型</li>
+        <li>死亡受傷人數</li>
+    </ul>
+</div>
+
+<div class="box4">
+    <h2>成果影片連結</h2>
+    <p><a href="https://www.youtube.com/watch?v=-T5VEKr6J7M">交通事故分析Youtube</a></p>
+</div>
+{% endblock %}
