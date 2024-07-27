@@ -11,7 +11,7 @@
         background-color: white;
     }
 
-    .box1,.box2,.box3 {
+    .box1,.box2,.box3,.box4,.box5 {
         margin: 20px;
        
     }
@@ -26,6 +26,14 @@
 
     .box3 {
         background-color: azure;
+    }
+
+    .border {
+        border: 1px solid black;
+    }
+
+    .padding {
+        padding: 10px;
     }
 </style>
 {% endblock %}
@@ -71,6 +79,28 @@
 </div>
 
 <div class="box4">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="../static/images/initial.png" class="img-fluid border padding">
+        </div>
+        <div class="col-md-6">
+            <img src="../static/images/map.png" class="img-fluid border padding">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <img src="../static/images/search.png" class="img-fluid border padding">
+        </div>
+        <div class="col-md-6">
+            <img src="../static/images/chart.png" class="img-fluid border padding">
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="box5">
     <h2>成果影片連結</h2>
     <p><a href="https://www.youtube.com/watch?v=-T5VEKr6J7M">交通事故分析Youtube</a></p>
 </div>
