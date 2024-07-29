@@ -12,7 +12,7 @@ df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死
 # Define the app layout
 app1.layout = html.Div([
     html.Div([
-        html.H1("交通事故分析"),
+        html.H1("交通事故分析",style={"textAlign":"center"}),
         html.Div([
             dcc.DatePickerSingle(
                 id='date-picker',
@@ -40,11 +40,19 @@ app1.layout = html.Div([
                 options=[{'label': light, 'value': light} for light in df['光線名稱'].unique()],
                 value=df['光線名稱'].unique().tolist(),
                 labelStyle={'display': 'inline-block'}
-            ),
+            )
             
-            dcc.Graph(id='map', style={'height': '500px'}),
         ], style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}),
-    ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
+    
+    html.Div([
+        dcc.Graph(id='map', style={'height': '500px'})],
+        style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
+
+    html.Div([
+        dcc.Graph(id='bar-chart', style={'height': '500px'})],
+        style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
+    ], 
+    style={'width': '80%', 'display': 'inline-block', 'vertical-align': 'top','margin-left':'10%','margin-right':'10%'}),
     
     html.Div([
         html.H3('事故資料表'),
@@ -56,19 +64,25 @@ app1.layout = html.Div([
                                  'if': {'column_id': '光線名稱'}, 'width': '250px'}])]),
     
     html.Div([
-        dcc.Graph(id='bar-chart', style={'height': '500px'}),
-    ], style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}),
-    
-    html.Div([
         dcc.Graph(id='bar-chart-2', style={'height': '500px'}),
-    ], style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'})
+    ], style={'width': '33%', 'display': 'inline-block', 'vertical-align': 'top'}),
+
+    html.Div([
+        dcc.Graph(id='pie-chart', style={'height': '500px'})],
+        style={'width': '33%', 'display': 'inline-block', 'vertical-align': 'top'}),
+
+    html.Div([
+        dcc.Graph(id='line-chart', style={'height': '500px'})],
+        style={'width': '33%', 'display': 'inline-block', 'vertical-align': 'top'})
 ])
 
 @app1.callback(
     [Output('filtered-data-list', 'data'),
      Output('map', 'figure'),
      Output('bar-chart', 'figure'),
-     Output('bar-chart-2', 'figure')],
+     Output('bar-chart-2', 'figure'),
+     Output('pie-chart', 'figure'),
+     Output('line-chart','figure')],
     [Input('date-picker', 'date'),
      Input('weather-filter', 'value'),
      Input('region-filter', 'value'),
@@ -89,8 +103,13 @@ def update_output(selected_date,selected_weathers, selected_regions, selected_li
                    (df['發生地點'].isin(selected_regions)) &
                    (df['光線名稱'].isin(selected_lights))]
     
-    count=len(filtered_df)  #計算案件數量
-    
+    # 計算累進事故次數
+    filtered_df['time'] = pd.to_datetime(filtered_df['發生時間'], format='%H:%M:%S.%f')
+    filtered_df = filtered_df.sort_values('time')
+    filtered_df['cumulative_accidents'] = filtered_df.groupby('發生日期').cumcount() + 1
+    total_accidents = len(filtered_df)
+    filtered_df['percentage'] = filtered_df['cumulative_accidents'] / total_accidents * 100
+
     map_figure = px.scatter_mapbox(filtered_df,
                                    lat="緯度",
                                    lon="經度",
@@ -112,16 +131,33 @@ def update_output(selected_date,selected_weathers, selected_regions, selected_li
                       x='發生地點',
                       y='案件數量',
                       labels={'發生地點': '發生地點', '案件數量': '案件數量'},
+                      color='發生地點',
                       title=f'各縣市案件數量', 
                       height=500)
     
-    road_counts = filtered_df['天候名稱'].value_counts().reset_index()
-    road_counts.columns = ['天候名稱', '案件數量']
-    bar_figure2=px.bar(road_counts,
+    weather_counts = filtered_df['天候名稱'].value_counts().reset_index()
+    weather_counts.columns = ['天候名稱', '案件數量']
+    bar_figure2=px.bar(weather_counts,
                       x='天候名稱',
                       y='案件數量',
                       labels={'天候名稱': '天候名稱', '案件數量': '案件數量'},
-                      title=f'各縣市案件數量', 
+                      color='天候名稱',
+                      title=f'各天氣案件數量', 
                       height=500)
+    
+    road_type_counts = filtered_df['道路類別_第1當事者_名稱'].value_counts().reset_index()
+    road_type_counts.columns = ['道路類別_第1當事者_名稱', '案件數量']
+    pie_figure=px.pie(road_type_counts,
+                        names='道路類別_第1當事者_名稱',
+                        values='案件數量',
+                        title='各道路類別案件數量')
+    
+    line_figure = px.line(filtered_df,
+                          x='time',
+                          y='percentage',
+                          labels={'time': '時間', 'percentage': '累進百分比'},
+                          title='累進車禍事故發生次數（%)',
+                          height=500)
+    line_figure.update_layout(xaxis={'tickformat': '%H:%M'})
 
-    return filtered_df.to_dict('records'), map_figure,bar_figure1,bar_figure2
+    return filtered_df.to_dict('records'), map_figure,bar_figure1,bar_figure2,pie_figure,line_figure
