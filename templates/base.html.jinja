@@ -18,7 +18,7 @@
         <a class="navbar-brand" href="{{url_for('index')}}">交通事故分析</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
           aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <img src="{{url_for('static',filename='images/menu.png')}}" alt="Toggle navigation"
+          <img src="{{url_for('static',filename='images/menuicon.png')}}" alt="Toggle navigation"
             style="width: 30px; height: 30px;">
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -39,9 +39,9 @@
       </div>
     </nav>
     <main>
-    {% block main%}
-    {% endblock %}
-    </main>    
+      {% block main%}
+      {% endblock %}
+    </main>
   </div>
 </body>
 
