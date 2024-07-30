@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 
 app1 = Dash(__name__,requests_pathname_prefix='/dashboard/dashboard2/')
+app1.title="全台交通事故資料"
 
 df = pd.read_csv(f"./data/2018.csv",encoding='utf-16')
 df.columns=df.columns.str.strip()
