@@ -7,98 +7,173 @@
 {% block head %}
 {{ super() }}
 <style type="text/css">
-    *{
-        margin:0;
-        padding:0
+    * {
+        margin: 0;
+        padding: 0
     }
 
     body {
-        background-color:#f5f5f7;
-        font-family:"微軟正黑體","Apple LiHei Pro";padding-top:0
+        background-color: #f5f5f7;
+        font-family: "微軟正黑體", "Apple LiHei Pro";
+        padding-top: 0
     }
 
-    .top{
-        display:flex; height:45px
+    .top {
+        display: flex;
+        height: 45px
     }
 
-    .top a{
-        
-    }
+    .top a {}
 
-    .box1,.box2,.box3,.box4,.box5,.box6,.box7,.box8,.box9 {
+    .box1,
+    .box2,
+    .box3,
+    .box4,
+    .box5,
+    .box6,
+    .box7,
+    .box8,
+    .box9 {
         margin: 20px;
         border-radius: 20px;
         padding: 5px;
-        box-shadow:3px 3px 20px #e2e2e2,-3px -3px 0.5px #ededed ;
+        box-shadow: 3px 3px 20px #e2e2e2, -3px -3px 0.5px #ededed;
         padding: 40px;
     }
 
-    h2{
-        margin:0 0 30px 15px
+    h2 {
+        margin: 0 0 30px 15px
     }
-    
-    .box0{
+
+    .box0 {
         display: flex;
-        justify-content:space-evenly
+        justify-content: space-evenly
     }
 
     .box1 {
         width: 45%;
     }
 
-    .box1 li{
-        margin-top:15px;
-        margin-left:20px
+    .box1 li {
+        margin-top: 15px;
+        margin-left: 12px
     }
 
     .box2 {
         width: 45%;
     }
 
-    .box2 p{
-        margin:0 10px;
+    .box2 p {
+        margin: 0 10px;
     }
 
-    .box2 div{
-        display:flex;
-        justify-content:center;
+    .box2 div {
+        display: flex;
+        justify-content: center;
     }
-.box2 ul{
-   
-}
-    .box2 li{
-        margin:15px 15px;
-        list-style:none;
-        background-color:#0071e3;
-        color:#ebf4fd;
-        height:45px;
-        width:120px;
-        line-height:45px;
-        border-radius:30px;
-        text-align:center;
-        font-weight:bold;
-        list-style:none
+
+    .box2 ul {}
+
+    .box2 li {
+        margin: 15px 15px;
+        list-style: none;
+        background-color: black;
+        color: #ebf4fd;
+        height: 45px;
+        width: 120px;
+        line-height: 45px;
+        border-radius: 30px;
+        text-align: center;
+        font-weight: bold;
+        list-style: none
     }
 
     .border {
         border: 1px solid black;
     }
 
-    img{
-        border-radius:10px
+    img {
+        border-radius: 10px
     }
 
-    p{
-        font-size:1.2em
+    p {
+        font-size: 1.2em
     }
 
+    @media (max-width: 768px) {
+
+        .box1,
+        .box2 {
+            width: 100%;
+        }
+
+        .box2 div {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .box2 ul {
+            margin-bottom: 20px;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+
+        .box1,
+        .box2 {
+            width: 48%;
+        }
+
+        .box1 {
+            margin-right: 2%;
+        }
+
+        .box2 {
+            margin-left: 2%;
+        }
+
+        .box2 div {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .box2 ul {
+            margin-bottom: 10px;
+        }
+    }
+
+    @media (min-width: 1025px) {
+
+        .box1,
+        .box2 {
+            width: 45%;
+        }
+
+        .box1 {
+            margin-right: 20px;
+        }
+
+        .box2 {
+            margin-left: 20px;
+        }
+
+        .box2 div {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .box2 li {
+            width: auto;
+            min-width: 120px;
+        }
+    }
 </style>
 
 {% endblock %}
 
 {% block main %}
 <h1 style="margin:3% 5% 0">这是首页 😀🤩😇</h1>
-<div class="box0">
+<div class="box0" class="container-fluid">
     <div class="box1">
         <h2>功能簡介：</h2>
         <ul>
@@ -135,17 +210,18 @@
             </ul>
         </div>
     </div>
+
 </div>
 
 
 <h2 style="margin:10px 5% 5px">資料來源:</h2>
-<p  style="margin-left:5%">傷亡道路交通事故資料 (<a
+<p style="margin-left:5%">傷亡道路交通事故資料 (<a
         href="https://data.gov.tw/datasets/search?p=1&size=10&s=_score_desc&rft=%E4%BA%A4%E9%80%9A%E4%BA%8B%E6%95%85"
         target="_blank">政府資料開放平台</a>)</p>
 
 
 
-<div class="box4">
+<div class="box4" class="container-fluid">
     <div class="row">
         <div class="col-md-6">
             <img src="../static/images/initial.png" class="img-fluid border padding">
@@ -164,28 +240,31 @@
     </div>
 </div>
 
-<div class="box5">
+<div class="box5" class="container-fluid">
     <h2>把csv档转换成utf-8编码的型别</h2>
     <img src="../static/images/convert.png" class="img-fluid border padding">
 </div>
 
-<div class="box6">
+<div class="box6" class="container-fluid">
     <h2>在pgadmin中的资料库建立各年度的table</h2>
     <img src="../static/images/table.png" class="img-fluid border padding">
 </div>
 
-<div class="box7">
+<div class="box7" class="container-fluid">
     <h2>插入资料语法</h2>
     <img src="../static/images/insert.png" class="img-fluid border padding">
 </div>
 
-<div class="box8">
+<div class="box8" class="container-fluid">
     <h2>检查资料是否插入成功</h2>
-    <img src="../static/images/result.png"class="img-fluid border padding">
+    <img src="../static/images/result.png" class="img-fluid border padding">
 </div>
 
-<div class="box9">
+<div class="box9" class="container-fluid">
     <h2>成果影片連結</h2>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/-T5VEKr6J7M?si=u89o4VEXKZk76b39" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/-T5VEKr6J7M?si=u89o4VEXKZk76b39"
+        title="YouTube video player" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 </div>
 {% endblock %}

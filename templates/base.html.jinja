@@ -8,6 +8,19 @@
   <link href="{{url_for('static',filename='style/bootstrap.min.css')}}" rel="stylesheet">
   <script src="{{url_for('static',filename='js/bootstrap.min.js')}}"></script>
   <title>{% block title%}首页{% endblock%}</title>
+  <style>
+    .navbar-expand-md .navbar-toggler {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 999;
+    }
+    @media (max-width: 1024px) {
+      .navbar-expand-md .top {
+        padding-right: 50px;
+      }
+    }
+  </style>
   {% endblock %}
 </head>
 
