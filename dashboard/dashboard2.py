@@ -18,8 +18,8 @@ DB_PASS = 'rBEiLilhmGmOM5yYkkcujQtLHMaLZaQi'
 engine = create_engine(f'postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
 
 # 從PostgreSQL讀取數據
-def fetch_data(year):
-    query = f'SELECT * FROM traffic{year}'
+def fetch_data(year, offset=0, limit=1000):
+    query = f'SELECT * FROM traffic{year} OFFSET {offset} LIMIT {limit}'
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
     return df
@@ -114,73 +114,94 @@ app1.layout = html.Div([
      ]
 )
 
-def update_output(selected_date,selected_weathers, selected_regions, selected_lights):
+@app1.callback(
+    [Output('filtered-data-list', 'data'),
+     Output('map', 'figure'),
+     Output('bar-chart', 'figure'),
+     Output('bar-chart-2', 'figure'),
+     Output('pie-chart', 'figure'),
+     Output('line-chart','figure')],
+    [Input('date-picker', 'date'),
+     Input('weather-filter', 'value'),
+     Input('region-filter', 'value'),
+     Input('lights-filter', 'value')]
+)
+def update_output(selected_date, selected_weathers, selected_regions, selected_lights):
     if selected_date is not None:
         year = selected_date.split('-')[0]
-        df = fetch_data(year)
+        df = pd.DataFrame()
+        offset = 0
+        limit = 1000
+        while True:
+            chunk = fetch_data(year, offset=offset, limit=limit)
+            if chunk.empty:
+                break
+            df = pd.concat([df, chunk])
+            offset += limit
+
         df.columns = df.columns.str.strip()
         df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
 
-    filtered_df=df[(df['發生日期']==selected_date) &
-                   (df['天候名稱'].isin(selected_weathers)) &
-                   (df['發生地點'].isin(selected_regions)) &
-                   (df['光線名稱'].isin(selected_lights))]
-    
-    # 計算累進事故次數
-    filtered_df['time'] = pd.to_datetime(filtered_df['發生時間'], format='%H:%M:%S.%f')
-    filtered_df = filtered_df.sort_values('time')
-    filtered_df['cumulative_accidents'] = filtered_df.groupby('發生日期').cumcount() + 1
-    total_accidents = len(filtered_df)
-    filtered_df['percentage'] = filtered_df['cumulative_accidents'] / total_accidents * 100
+        filtered_df = df[(df['發生日期'] == selected_date) &
+                         (df['天候名稱'].isin(selected_weathers)) &
+                         (df['發生地點'].isin(selected_regions)) &
+                         (df['光線名稱'].isin(selected_lights))]
 
-    map_figure = px.scatter_mapbox(filtered_df,
-                                   lat="緯度",
-                                   lon="經度",
-                                   hover_name="發生地點",
-                                   color="天候名稱",
-                                   zoom=6,
-                                   labels="事故地圖")
-    map_figure.update_layout(mapbox_style="open-street-map",
-                             margin={"r":0,"t":80,"l":100,"b":50},
-                             title={"text":"事故地圖",
-                                    'x': 0.5,  # 標題居中
-                                    "xanchor":"center",
-                                    'y': 0.9,
-                                    'font': {'size': 30}
-                                    })
-    location_counts = filtered_df['發生地點'].value_counts().reset_index()
-    location_counts.columns = ['發生地點', '案件數量']
-    bar_figure1=px.bar(location_counts,
-                      x='發生地點',
-                      y='案件數量',
-                      labels={'發生地點': '發生地點', '案件數量': '案件數量'},
-                      color='發生地點',
-                      title=f'各縣市案件數量', 
-                      height=500)
-    
-    weather_counts = filtered_df['天候名稱'].value_counts().reset_index()
-    weather_counts.columns = ['天候名稱', '案件數量']
-    bar_figure2=px.bar(weather_counts,
-                      x='天候名稱',
-                      y='案件數量',
-                      labels={'天候名稱': '天候名稱', '案件數量': '案件數量'},
-                      color='天候名稱',
-                      title=f'各天氣案件數量', 
-                      height=500)
-    
-    road_type_counts = filtered_df['道路類別_第1當事者_名稱'].value_counts().reset_index()
-    road_type_counts.columns = ['道路類別_第1當事者_名稱', '案件數量']
-    pie_figure=px.pie(road_type_counts,
-                        names='道路類別_第1當事者_名稱',
-                        values='案件數量',
-                        title='各道路類別案件數量')
-    
-    line_figure = px.line(filtered_df,
-                          x='time',
-                          y='percentage',
-                          labels={'time': '時間', 'percentage': '累進百分比'},
-                          title='累進車禍事故發生次數（%)',
-                          height=500)
-    line_figure.update_layout(xaxis={'tickformat': '%H:%M'})
+        # 計算累進事故次數
+        filtered_df['time'] = pd.to_datetime(filtered_df['發生時間'], format='%H:%M:%S.%f')
+        filtered_df = filtered_df.sort_values('time')
+        filtered_df['cumulative_accidents'] = filtered_df.groupby('發生日期').cumcount() + 1
+        total_accidents = len(filtered_df)
+        filtered_df['percentage'] = filtered_df['cumulative_accidents'] / total_accidents * 100
 
-    return filtered_df.to_dict('records'), map_figure,bar_figure1,bar_figure2,pie_figure,line_figure
+        map_figure = px.scatter_mapbox(filtered_df,
+                                       lat="緯度",
+                                       lon="經度",
+                                       hover_name="發生地點",
+                                       color="天候名稱",
+                                       zoom=6,
+                                       labels="事故地圖")
+        map_figure.update_layout(mapbox_style="open-street-map",
+                                 margin={"r":0,"t":80,"l":100,"b":50},
+                                 title={"text":"事故地圖",
+                                        'x': 0.5,  # 標題居中
+                                        "xanchor":"center",
+                                        'y': 0.9,
+                                        'font': {'size': 30}
+                                        })
+        location_counts = filtered_df['發生地點'].value_counts().reset_index()
+        location_counts.columns = ['發生地點', '案件數量']
+        bar_figure1 = px.bar(location_counts,
+                             x='發生地點',
+                             y='案件數量',
+                             labels={'發生地點': '發生地點', '案件數量': '案件數量'},
+                             color='發生地點',
+                             title='各縣市案件數量', 
+                             height=500)
+        
+        weather_counts = filtered_df['天候名稱'].value_counts().reset_index()
+        weather_counts.columns = ['天候名稱', '案件數量']
+        bar_figure2 = px.bar(weather_counts,
+                             x='天候名稱',
+                             y='案件數量',
+                             labels={'天候名稱': '天候名稱', '案件數量': '案件數量'},
+                             color='天候名稱',
+                             title='各天氣案件數量', 
+                             height=500)
+        
+        road_type_counts = filtered_df['道路類別_第1當事者_名稱'].value_counts().reset_index()
+        road_type_counts.columns = ['道路類別_第1當事者_名稱', '案件數量']
+        pie_figure = px.pie(road_type_counts,
+                            names='道路類別_第1當事者_名稱',
+                            values='案件數量',
+                            title='各道路類別案件數量')
+        
+        line_figure = px.line(filtered_df,
+                              x='time',
+                              y='percentage',
+                              labels={'time': '時間', 'percentage': '累進百分比'},
+                              title='累進車禍事故發生次數（%)',
+                              height=500)
+        line_figure.update_layout(xaxis={'tickformat': '%H:%M'})
+
+        return filtered_df.to_dict('records'), map_figure, bar_figure1, bar_figure2, pie_figure, line_figure
