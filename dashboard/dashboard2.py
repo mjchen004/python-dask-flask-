@@ -9,10 +9,10 @@ app1 = Dash(__name__,requests_pathname_prefix='/dashboard/dashboard2/')
 app1.title="全台交通事故資料"
 
 # 配置PostgreSQL連接信息
-DB_HOST = 'dpg-cqhfldt6l47c73fn0ffg-a.singapore-postgres.render.com'
-DB_NAME = 'python_dash_flask'
-DB_USER = 'tvdi_1t1e_user'
-DB_PASS = 'rBEiLilhmGmOM5yYkkcujQtLHMaLZaQi'
+DB_HOST = 'dpg-cqa8dr5ds78s739nis2g-a.singapore-postgres.render.com'
+DB_NAME = 'python'
+DB_USER = 'tvdi_postgresql_new_b3wx_user'
+DB_PASS = 'K4XGCCwSgJ6jWdBNhTLq9JniYjzmvIH2'
 
 # 連接PostgreSQL數據庫
 engine = create_engine(f'postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
@@ -77,19 +77,11 @@ app1.layout = html.Div([
     html.Div([
         html.H1("交通事故分析", style={"textAlign":"center"}),
         html.Div([
-            dcc.Dropdown(
-                id='year-dropdown',
-                options=[{'label': str(year), 'value': str(year)} for year in range(2018, 2025)],
-                value='2018',
-                placeholder='Select Year',
-                style={'width':'30%','margin-bottom':'1%'}
-            ),
             dcc.DatePickerSingle(
                 id='date-picker',
                 date=initial_data['發生日期'].min(),
                 display_format='YYYY-MM-DD',
-                placeholder="選擇日期",
-                style={'width':'40%'}
+                placeholder="選擇日期"
             ),
             html.Hr(),
             dcc.Checklist(
@@ -147,18 +139,6 @@ app1.layout = html.Div([
         dcc.Graph(id='line-chart', style={'height': '500px'})],
         style={'width': '33%', 'display': 'inline-block', 'vertical-align': 'top'})
 ])
-
-@app1.callback(
-    [Output('date-picker', 'min_date_allowed'),
-     Output('date-picker', 'max_date_allowed'),
-     Output('date-picker', 'initial_visible_month'),
-     Output('date-picker', 'date')],
-    [Input('year-dropdown', 'value')]
-)
-def update_date_picker(selected_year):
-    start_date = f"{selected_year}-01-01"
-    end_date = f"{selected_year}-12-31"
-    return start_date, end_date, start_date, start_date
 
 @app1.callback(
     [Output('filtered-data-list', 'data'),
