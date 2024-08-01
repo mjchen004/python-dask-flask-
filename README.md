@@ -36,7 +36,13 @@ https://github.com/mjchen004/python_dash-flask
 ## 六、資料來源:
 傷亡道路交通事故資料( [政府資料開放平台](https://data.gov.tw/datasets/search?p=1&size=10&s=_score_desc&rft=%E4%BA%A4%E9%80%9A%E4%BA%8B%E6%95%85) )
 
-## 七、資料格式:
+## 七、程式架構:
+* 資料查詢程式設計
+### [程式](./dashboard/dashboard2.py)
+* 功能介紹頁面設計
+### [網頁編排](./templates/index.html.jinja)
+
+## 八、資料格式:
 * 各年度資料csv檔案，存放於Render的postgreSQL資料庫中
 ### [建立資料庫](./CreateTable.sql)
 
