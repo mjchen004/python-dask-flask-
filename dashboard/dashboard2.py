@@ -22,7 +22,7 @@ def fetch_distinct_values():
     SELECT DISTINCT 發生日期, 發生地點, 事故類別名稱, 天候名稱, 光線名稱, 速限_第1當事者, 
     道路類別_第1當事者_名稱, 死亡受傷人數, 經度, 緯度, 發生時間
     FROM traffic2018
-    order by 發生日期
+    order by 發生日期,發生時間
     LIMIT 1000
     '''
     with engine.connect() as connection:
@@ -68,7 +68,8 @@ cities = [
 ]
 weathers=["晴","陰","雨","暴雨","強風","風沙","霧或煙"]
 lights=[
-    "日間自然光線","有照明且開啟","晨或暮光","夜間(或隧道、地下道、涵洞)有照明","有照明未開啟或故障","]
+    "日間自然光線","有照明且開啟","晨或暮光","夜間(或隧道、地下道、涵洞)有照明",
+    "夜間(或隧道、地下道、涵洞)無照明","有照明未開啟或故障","無照明"]
 
 # Define the app layout
 # 定義應用布局
@@ -76,33 +77,41 @@ app1.layout = html.Div([
     html.Div([
         html.H1("交通事故分析", style={"textAlign":"center"}),
         html.Div([
+            dcc.Dropdown(
+                id='year-dropdown',
+                options=[{'label': str(year), 'value': str(year)} for year in range(2018, 2025)],
+                value='2018',
+                placeholder='Select Year',
+                style={'width':'30%','margin-bottom':'1%'}
+            ),
             dcc.DatePickerSingle(
                 id='date-picker',
                 date=initial_data['發生日期'].min(),
                 display_format='YYYY-MM-DD',
                 placeholder="選擇日期",
+                style={'width':'40%'}
             ),
             html.Hr(),
             dcc.Checklist(
                 id='weather-filter',
-                options=[{'label': weather, 'value': weather} for weather in initial_data['天候名稱'].unique()],
-                value=initial_data['天候名稱'].unique().tolist(),
-                labelStyle={'display': 'inline-block'}
+                options=[{'label': weather, 'value': weather} for weather in weathers],
+                value=weathers,
+                labelStyle={'display': 'inline-block','margin-right':'2%'}
             ),
             html.Hr(),
             dcc.Checklist(
                 id='region-filter',
                 options=[{'label': city, 'value': city} for city in cities],
                 value=cities,
-                labelStyle={'display': 'inline-block'}
+                labelStyle={'display': 'inline-block','margin-right':'2%'}
             )
 ,
             html.Hr(),
             dcc.Checklist(
                 id='lights-filter',
-                options=[{'label': light, 'value': light} for light in initial_data['光線名稱'].unique()],
-                value=initial_data['光線名稱'].unique().tolist(),
-                labelStyle={'display': 'inline-block'}
+                options=[{'label': light, 'value': light} for light in lights],
+                value=lights,
+                labelStyle={'display': 'inline-block','margin-right':'1%'}
             )
         ], style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}),
     
@@ -119,9 +128,10 @@ app1.layout = html.Div([
     html.Div([
         html.H3('事故資料表'),
         dash_table.DataTable(id='filtered-data-list',
-                             columns=[{'name':col,'id':col} for col in ['發生日期','發生地點','事故類別名稱','天候名稱','光線名稱','速限_第1當事者','道路類別_第1當事者_名稱','死亡人數','受傷人數']],
+                             columns=[{'name':col,'id':col} for col in ['發生日期','發生時間','發生地點','事故類別名稱','天候名稱','光線名稱','速限_第1當事者','道路類別_第1當事者_名稱','死亡人數','受傷人數']],
                              data=initial_data.to_dict('records'),
                              page_size=10,
+                             style_cell={'textAlign':'center'},
                              style_cell_conditional=[{
                                  'if': {'column_id': '光線名稱'}, 'width': '250px'}])]),
     
@@ -137,6 +147,18 @@ app1.layout = html.Div([
         dcc.Graph(id='line-chart', style={'height': '500px'})],
         style={'width': '33%', 'display': 'inline-block', 'vertical-align': 'top'})
 ])
+
+@app1.callback(
+    [Output('date-picker', 'min_date_allowed'),
+     Output('date-picker', 'max_date_allowed'),
+     Output('date-picker', 'initial_visible_month'),
+     Output('date-picker', 'date')],
+    [Input('year-dropdown', 'value')]
+)
+def update_date_picker(selected_year):
+    start_date = f"{selected_year}-01-01"
+    end_date = f"{selected_year}-12-31"
+    return start_date, end_date, start_date, start_date
 
 @app1.callback(
     [Output('filtered-data-list', 'data'),
@@ -157,12 +179,16 @@ def update_output(selected_date, selected_weathers, selected_regions, selected_l
         year = selected_date.split('-')[0]
         df = fetch_data(year, selected_date, selected_weathers, selected_regions, selected_lights)
         df.columns = df.columns.str.strip()
+        
         df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
-
+        
+        df['發生時間'] = df['發生時間'].apply(lambda x: x.split('.')[0])
+        df['發生時間'] = pd.to_datetime(df['發生時間'], format='%H:%M:%S').dt.strftime('%H:%M:%S')
+        
         filtered_df = df
 
         # 計算累進事故次數
-        filtered_df['time'] = pd.to_datetime(filtered_df['發生時間'], format='%H:%M:%S.%f')
+        filtered_df['time'] = pd.to_datetime(filtered_df['發生時間'], format='%H:%M:%S')
         filtered_df = filtered_df.sort_values('time')
         filtered_df['cumulative_accidents'] = filtered_df.groupby('發生日期').cumcount() + 1
         total_accidents = len(filtered_df)
