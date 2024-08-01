@@ -22,6 +22,7 @@ def fetch_distinct_values():
     SELECT DISTINCT 發生日期, 發生地點, 事故類別名稱, 天候名稱, 光線名稱, 速限_第1當事者, 
     道路類別_第1當事者_名稱, 死亡受傷人數, 經度, 緯度, 發生時間
     FROM traffic2018
+    order by 發生日期
     LIMIT 1000
     '''
     with engine.connect() as connection:
@@ -58,8 +59,16 @@ def fetch_data(year, date, weathers, regions, lights, batch_size=1000):
 initial_data = fetch_distinct_values()
 initial_data[['死亡人數', '受傷人數']] = initial_data['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
 
-initial_data[['死亡人數', '受傷人數']] = initial_data['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
-
+# 定義篩選列表
+cities = [
+    "臺北市", "新北市", "桃園市", "臺中市", "臺南市", "高雄市", 
+    "基隆市", "新竹市", "嘉義市", "新竹縣", "苗栗縣", "彰化縣", 
+    "南投縣", "雲林縣", "嘉義縣", "屏東縣", "宜蘭縣", "花蓮縣", 
+    "臺東縣", "澎湖縣", "金門縣", "連江縣"
+]
+weathers=["晴","陰","雨","暴雨","強風","風沙","霧或煙"]
+lights=[
+    "日間自然光線","有照明且開啟","晨或暮光","夜間(或隧道、地下道、涵洞)有照明","有照明未開啟或故障","]
 
 # Define the app layout
 # 定義應用布局
@@ -83,10 +92,11 @@ app1.layout = html.Div([
             html.Hr(),
             dcc.Checklist(
                 id='region-filter',
-                options=[{'label': region, 'value': region} for region in initial_data['發生地點'].unique()],
-                value=initial_data['發生地點'].unique().tolist(),
+                options=[{'label': city, 'value': city} for city in cities],
+                value=cities,
                 labelStyle={'display': 'inline-block'}
-            ),
+            )
+,
             html.Hr(),
             dcc.Checklist(
                 id='lights-filter',
