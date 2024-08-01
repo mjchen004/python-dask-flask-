@@ -17,55 +17,83 @@ DB_PASS = 'rBEiLilhmGmOM5yYkkcujQtLHMaLZaQi'
 # 連接PostgreSQL數據庫
 engine = create_engine(f'postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
 
-# 從PostgreSQL讀取數據
-def fetch_data(year, offset=0, limit=1000):
-    query = f'SELECT * FROM traffic{year} OFFSET {offset} LIMIT {limit}'
+def fetch_distinct_values():
+    query = '''
+    SELECT DISTINCT 發生日期, 發生地點, 事故類別名稱, 天候名稱, 光線名稱, 速限_第1當事者, 
+    道路類別_第1當事者_名稱, 死亡受傷人數, 經度, 緯度, 發生時間
+    FROM traffic2018
+    LIMIT 1000
+    '''
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
+    df.columns = df.columns.str.strip()
+    return df
+
+# 從PostgreSQL讀取數據
+def fetch_data(year, date, weathers, regions, lights, batch_size=1000):
+    offset = 0
+    df = pd.DataFrame()
+    while True:
+        weathers_str = ', '.join(f"'{w}'" for w in weathers)
+        regions_str = ', '.join(f"'{r}'" for r in regions)
+        lights_str = ', '.join(f"'{l}'" for l in lights)
+        query = f'''
+        SELECT 發生日期, 發生地點, 事故類別名稱, 天候名稱, 光線名稱, 速限_第1當事者, 道路類別_第1當事者_名稱, 死亡受傷人數, 經度, 緯度, 發生時間
+        FROM traffic{year}
+        WHERE 發生日期 = '{date}'
+        AND 天候名稱 IN ({weathers_str})
+        AND 發生地點 IN ({regions_str})
+        AND 光線名稱 IN ({lights_str})
+        LIMIT {batch_size} OFFSET {offset}
+        '''
+        with engine.connect() as connection:
+            chunk = pd.read_sql(query, connection)
+            if chunk.empty:
+                break
+            df = pd.concat([df, chunk])
+            offset += batch_size
     return df
 
 # 初始讀取數據
-df = fetch_data(2018)
-df.columns = df.columns.str.strip()
-df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
+initial_data = fetch_distinct_values()
+initial_data[['死亡人數', '受傷人數']] = initial_data['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
 
-# df = pd.read_csv(f"./data/2018.csv",encoding='utf-16')
-# df.columns=df.columns.str.strip()
-# df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
+initial_data[['死亡人數', '受傷人數']] = initial_data['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
+
 
 # Define the app layout
+# 定義應用布局
 app1.layout = html.Div([
     html.Div([
-        html.H1("交通事故分析",style={"textAlign":"center"}),
+        html.H1("交通事故分析", style={"textAlign":"center"}),
         html.Div([
             dcc.DatePickerSingle(
                 id='date-picker',
-                date=df['發生日期'].min(),
+                date=initial_data['發生日期'].min(),
                 display_format='YYYY-MM-DD',
                 placeholder="選擇日期",
             ),
             html.Hr(),
             dcc.Checklist(
                 id='weather-filter',
-                options=[{'label': weather, 'value': weather} for weather in df['天候名稱'].unique()],
-                value=df['天候名稱'].unique().tolist(),
+                options=[{'label': weather, 'value': weather} for weather in initial_data['天候名稱'].unique()],
+                value=initial_data['天候名稱'].unique().tolist(),
                 labelStyle={'display': 'inline-block'}
             ),
             html.Hr(),
             dcc.Checklist(
                 id='region-filter',
-                options=[{'label': region, 'value': region} for region in df['發生地點'].unique()],
-                value=df['發生地點'].unique().tolist(),
+                options=[{'label': region, 'value': region} for region in initial_data['發生地點'].unique()],
+                value=initial_data['發生地點'].unique().tolist(),
                 labelStyle={'display': 'inline-block'}
             ),
             html.Hr(),
             dcc.Checklist(
                 id='lights-filter',
-                options=[{'label': light, 'value': light} for light in df['光線名稱'].unique()],
-                value=df['光線名稱'].unique().tolist(),
+                options=[{'label': light, 'value': light} for light in initial_data['光線名稱'].unique()],
+                value=initial_data['光線名稱'].unique().tolist(),
                 labelStyle={'display': 'inline-block'}
             )
-            
         ], style={'width': '100%', 'display': 'inline-block', 'vertical-align': 'top'}),
     
     html.Div([
@@ -82,7 +110,7 @@ app1.layout = html.Div([
         html.H3('事故資料表'),
         dash_table.DataTable(id='filtered-data-list',
                              columns=[{'name':col,'id':col} for col in ['發生日期','發生地點','事故類別名稱','天候名稱','光線名稱','速限_第1當事者','道路類別_第1當事者_名稱','死亡人數','受傷人數']],
-                             data=df.to_dict('records'),
+                             data=initial_data.to_dict('records'),
                              page_size=10,
                              style_cell_conditional=[{
                                  'if': {'column_id': '光線名稱'}, 'width': '250px'}])]),
@@ -114,38 +142,14 @@ app1.layout = html.Div([
      ]
 )
 
-@app1.callback(
-    [Output('filtered-data-list', 'data'),
-     Output('map', 'figure'),
-     Output('bar-chart', 'figure'),
-     Output('bar-chart-2', 'figure'),
-     Output('pie-chart', 'figure'),
-     Output('line-chart','figure')],
-    [Input('date-picker', 'date'),
-     Input('weather-filter', 'value'),
-     Input('region-filter', 'value'),
-     Input('lights-filter', 'value')]
-)
 def update_output(selected_date, selected_weathers, selected_regions, selected_lights):
-    if selected_date is not None:
+    if selected_date and selected_weathers and selected_regions and selected_lights:
         year = selected_date.split('-')[0]
-        df = pd.DataFrame()
-        offset = 0
-        limit = 1000
-        while True:
-            chunk = fetch_data(year, offset=offset, limit=limit)
-            if chunk.empty:
-                break
-            df = pd.concat([df, chunk])
-            offset += limit
-
+        df = fetch_data(year, selected_date, selected_weathers, selected_regions, selected_lights)
         df.columns = df.columns.str.strip()
         df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
 
-        filtered_df = df[(df['發生日期'] == selected_date) &
-                         (df['天候名稱'].isin(selected_weathers)) &
-                         (df['發生地點'].isin(selected_regions)) &
-                         (df['光線名稱'].isin(selected_lights))]
+        filtered_df = df
 
         # 計算累進事故次數
         filtered_df['time'] = pd.to_datetime(filtered_df['發生時間'], format='%H:%M:%S.%f')
@@ -154,6 +158,7 @@ def update_output(selected_date, selected_weathers, selected_regions, selected_l
         total_accidents = len(filtered_df)
         filtered_df['percentage'] = filtered_df['cumulative_accidents'] / total_accidents * 100
 
+        # 地圖圖表
         map_figure = px.scatter_mapbox(filtered_df,
                                        lat="緯度",
                                        lon="經度",
@@ -169,6 +174,8 @@ def update_output(selected_date, selected_weathers, selected_regions, selected_l
                                         'y': 0.9,
                                         'font': {'size': 30}
                                         })
+        
+        # 各縣市案件數量
         location_counts = filtered_df['發生地點'].value_counts().reset_index()
         location_counts.columns = ['發生地點', '案件數量']
         bar_figure1 = px.bar(location_counts,
@@ -179,6 +186,7 @@ def update_output(selected_date, selected_weathers, selected_regions, selected_l
                              title='各縣市案件數量', 
                              height=500)
         
+        # 各天氣案件數量
         weather_counts = filtered_df['天候名稱'].value_counts().reset_index()
         weather_counts.columns = ['天候名稱', '案件數量']
         bar_figure2 = px.bar(weather_counts,
