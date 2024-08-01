@@ -51,7 +51,7 @@ https://github.com/mjchen004/python_dash-flask
 3. 選擇日期、勾選要呈現的條件後，事故地圖顯示於下方
 ### ![事故資料](./img/map.png)
 4. 交通事故之情形分布
-### [資料](./img/data.png)
+### ![資料](./img/data.png)
 
 # 成果影片連結:
 > ## [Youtube連接](https://www.youtube.com/watch?v=-T5VEKr6J7M)
