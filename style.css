@@ -1,0 +1,80 @@
+*{margin: 0;
+padding: 0;}
+body {
+    background-color: #f5f5f7;
+    font-family: "微軟正黑體", "Apple LiHei Pro";
+    padding-top: 0;
+    width: 1200px;
+    margin: auto;
+}
+
+.top {
+    display: flex;
+    height: 45px
+}
+
+.top a {}
+
+.box1,.box2,.box3,.box4,.box5,.box6,.box7,.box8 {
+    margin: 20px;
+    border-radius: 20px;
+    padding: 5px;
+    box-shadow: 3px 3px 20px #e2e2e2, -3px -3px 0.5px #ededed;
+    padding: 40px;
+}
+
+.box0 {
+    display: flex;
+    justify-content: space-evenly
+}
+
+.box1 {
+    width: 45%;
+}
+
+.box1 li {
+    margin-top: 15px;
+    margin-left:25px
+}
+
+.box2 {
+    width: 45%;
+}
+
+.box2 div {
+    display: flex;
+    /* background-color: green; */
+    justify-content:center;
+    /* width: 100% */
+}
+
+.box2 ul {
+    /* background-color: red; */
+    /* width: 40% */
+}
+
+.box2 li {
+    margin: 15px;
+    list-style: none;
+    background-color: #0071e3;
+    color: #ebf4fd;
+    height: 45px;
+    width: 120px;
+    line-height:45px;
+    border-radius: 30px;
+    text-align: center;
+    font-weight: bold;
+    
+}
+
+.box1,
+.box2 h2 {
+    margin-bottom: 2%
+}
+
+.box3 {}
+
+.border {
+    border: 1px solid black;
+}
+
