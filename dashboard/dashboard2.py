@@ -2,13 +2,36 @@ from dash import Dash, dcc, html,dash_table,Input, Output,callback
 # from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.express as px
+import psycopg2
+from sqlalchemy import create_engine
 
 app1 = Dash(__name__,requests_pathname_prefix='/dashboard/dashboard2/')
 app1.title="全台交通事故資料"
 
-df = pd.read_csv(f"./data/2018.csv",encoding='utf-16')
-df.columns=df.columns.str.strip()
+# 配置PostgreSQL連接信息
+DB_HOST = 'dpg-cqhfldt6l47c73fn0ffg-a.singapore-postgres.render.com'
+DB_NAME = 'python_dash_flask'
+DB_USER = 'tvdi_1t1e_user'
+DB_PASS = 'rBEiLilhmGmOM5yYkkcujQtLHMaLZaQi'
+
+# 連接PostgreSQL數據庫
+engine = create_engine(f'postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
+
+# 從PostgreSQL讀取數據
+def fetch_data(year):
+    query = f'SELECT * FROM traffic{year}'
+    with engine.connect() as connection:
+        df = pd.read_sql(query, connection)
+    return df
+
+# 初始讀取數據
+df = fetch_data(2018)
+df.columns = df.columns.str.strip()
 df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
+
+# df = pd.read_csv(f"./data/2018.csv",encoding='utf-16')
+# df.columns=df.columns.str.strip()
+# df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
 
 # Define the app layout
 app1.layout = html.Div([
@@ -93,11 +116,10 @@ app1.layout = html.Div([
 
 def update_output(selected_date,selected_weathers, selected_regions, selected_lights):
     if selected_date is not None:
-        year=selected_date.split('-')[0]
-        file_name=f'./data/{year}.csv'
-    df=pd.read_csv(file_name,encoding='utf-16')
-    df.columns=df.columns.str.strip()
-    df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
+        year = selected_date.split('-')[0]
+        df = fetch_data(year)
+        df.columns = df.columns.str.strip()
+        df[['死亡人數', '受傷人數']] = df['死亡受傷人數'].str.extract('死亡(\d+);受傷(\d+)').astype(int)
 
     filtered_df=df[(df['發生日期']==selected_date) &
                    (df['天候名稱'].isin(selected_weathers)) &
