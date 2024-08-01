@@ -30,6 +30,7 @@ https://github.com/mjchen004/python_dash-flask
 ## 八、資料格式:
 * 各年度資料csv檔案，存放於Render的postgreSQL資料庫中
 ### [建立資料庫](./CreateTable.sql)
+### [資料存放](./(mj)translate.ipynb)
 
 * 顯示事故資料類型包含:
   
