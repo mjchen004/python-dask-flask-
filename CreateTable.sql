@@ -17,4 +17,4 @@ create table traffic2024(
 	死亡受傷人數 text,
 	經度 float,
 	緯度 float
-)
+);
