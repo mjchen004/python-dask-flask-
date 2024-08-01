@@ -5,3 +5,4 @@ gunicorn
 dash
 pandas
 plotly.express
+sqlalchemy
