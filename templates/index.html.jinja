@@ -88,6 +88,19 @@
         list-style: none
     }
 
+    .box9{
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .box9 div{
+        width: 40%;
+        margin: 0;
+    }
+
+    .box9 h2{
+    }
+
     .border {
         border: 1px solid black;
     }
@@ -197,14 +210,12 @@
                 <li>發生時間</li>
                 <li>事故類別</li>
                 <li>發生地點</li>
+                <li>光線名稱</li>
             </ul>
             <ul>
-                <li>光線名稱</li>
                 <li>天氣</li>
                 <li>速限</li>
                 <li>道路類別</li>
-            </ul>
-            <ul>
                 <li>事故類型</li>
                 <li>死亡受傷人數</li>
             </ul>
@@ -246,7 +257,7 @@
 </div>
 
 <div class="box6" class="container-fluid">
-    <h2>在pgadmin中的资料库建立各年度的table</h2>
+    <h2>在pgAdmin中的资料库建立各年度的Table</h2>
     <img src="../static/images/table.png" class="img-fluid border padding">
 </div>
 
@@ -261,10 +272,19 @@
 </div>
 
 <div class="box9" class="container-fluid">
-    <h2>成果影片連結</h2>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/-T5VEKr6J7M?si=u89o4VEXKZk76b39"
-        title="YouTube video player" frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <div>
+        <h2>程式版介紹影片：</h2>
+        <iframe width="500" height="280" src="https://www.youtube.com/embed/-T5VEKr6J7M?si=2nC5V23In8_Xx3wr"
+            title="YouTube video player" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+    <div>
+        <h2>網頁版介紹影片：</h2>
+        <iframe width="500" height="280" src="https://www.youtube.com/embed/HANUxkTxgn4?si=szFdLormkmZSC7oV"
+            title="YouTube video player" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
 </div>
 {% endblock %}
