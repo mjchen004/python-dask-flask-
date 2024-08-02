@@ -46,4 +46,4 @@ https://github.com/mjchen004/python_dash-flask
 ### ![資料](./img/data.png)
 
 # 成果影片連結:
-> ## [Youtube連接](https://www.youtube.com/watch?v=-T5VEKr6J7M)
+> ## [Youtube連接](https://www.youtube.com/watch?v=HANUxkTxgn4)
